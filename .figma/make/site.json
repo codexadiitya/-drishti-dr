@@ -1,0 +1,10 @@
+{
+  "description": "Automated diabetic retinopathy screening tool enhances retinal image quality, segments structures, grades severity, and provides explainable insights for rural healthcare providers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

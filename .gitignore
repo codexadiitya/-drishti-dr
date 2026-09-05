@@ -1,46 +1,20 @@
-# Dependencies
 node_modules/
-frontend/node_modules/
-.pnp
-.pnp.js
-
-# Next.js build output
-.next/
-frontend/.next/
-out/
-build/
 dist/
+build/
+.cache/
+.env*
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+*-debug.log*
+logs/
+*.log
+.claude-replay.*
+.tmp-*
 
-# Python & Backend
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-venv/
-.venv/
-env/
-
-# Uploads & Temp Storage
-storage/uploads/*
-!storage/uploads/.gitkeep
-storage/overlays/*
-!storage/overlays/.gitkeep
-storage/reports/*
-!storage/reports/.gitkeep
-
-# System & Editor Files
-.DS_Store
-Thumbs.db
-*.pem
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.idea/
-.vscode/
-*.swp
-*.swo
+# Platform-managed agentplat state, not project source. In the
+# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
+# repo root IS the workspace root, so these land inside this repo rather than
+# beside it.
+/.plugins/
+/.opencode-skills/
