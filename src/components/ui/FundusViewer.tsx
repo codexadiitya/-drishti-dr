@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, Layers, Eye, Sparkles, Activity } from 'lucide-react';
 
-export type OverlayMode = 'original' | 'enhanced' | 'vessel' | 'lesion' | 'gradcam' | 'combined';
+export type OverlayMode = 'original' | 'enhanced' | 'vessel' | 'lesion' | 'gradcam' | 'combined' | 'grayscale';
 
 interface FundusImageProps {
   mode: OverlayMode;
@@ -35,12 +35,13 @@ function FundusImage({
   gradcamUrl,
   zoom = 1,
 }: FundusImageProps) {
-  const showOriginal = ['original', 'enhanced', 'vessel', 'lesion', 'combined'].includes(mode);
-  const showVessels = ['original', 'enhanced', 'vessel', 'combined'].includes(mode);
+  const showOriginal = ['original', 'enhanced', 'vessel', 'lesion', 'combined', 'grayscale'].includes(mode);
+  const showVessels = ['original', 'enhanced', 'vessel', 'combined', 'grayscale'].includes(mode);
   const showLesions = ['lesion', 'combined'].includes(mode);
   const showGradCam = ['gradcam', 'combined'].includes(mode);
   const isVesselMode = mode === 'vessel';
   const isEnhanced = mode === 'enhanced';
+  const isGrayscale = mode === 'grayscale';
 
   // Check whether we have a genuine clinical or user-uploaded photograph
   const hasRealImage = Boolean(imageUrl || enhancedImageUrl || gradcamUrl);
@@ -55,6 +56,8 @@ function FundusImage({
     activeSrc = imageUrl || enhancedImageUrl;
   } else if (mode === 'combined') {
     activeSrc = gradcamUrl || enhancedImageUrl || imageUrl;
+  } else if (mode === 'grayscale') {
+    activeSrc = imageUrl || enhancedImageUrl;
   } else {
     // vessel, lesion
     activeSrc = imageUrl || enhancedImageUrl;
@@ -66,7 +69,9 @@ function FundusImage({
   // Filter effect when rendering real fundus photos
   let imageFilter: string | undefined = undefined;
   if (hasRealImage) {
-    if (mode === 'enhanced' && !enhancedImageUrl) {
+    if (mode === 'grayscale') {
+      imageFilter = 'grayscale(100%) contrast(140%) brightness(108%)';
+    } else if (mode === 'enhanced' && !enhancedImageUrl) {
       imageFilter = 'contrast(135%) brightness(104%) saturate(115%)';
     } else if (mode === 'vessel') {
       imageFilter = 'contrast(175%) brightness(95%) hue-rotate(90deg)';
@@ -295,9 +300,10 @@ function FundusImage({
   );
 }
 
-const MODES: { id: OverlayMode; label: string; icon?: any }[] = [
+const MODES: { id: OverlayMode; label: string }[] = [
   { id: 'original', label: 'Original' },
   { id: 'enhanced', label: 'Enhanced (CLAHE)' },
+  { id: 'grayscale', label: 'B&W Segmentation' },
   { id: 'vessel', label: 'Retinal Vessels' },
   { id: 'lesion', label: 'Lesion Overlay' },
   { id: 'gradcam', label: 'Grad-CAM' },
