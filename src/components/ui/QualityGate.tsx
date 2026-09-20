@@ -70,230 +70,213 @@ export function QualityGate({
     : [];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 card-shadow space-y-5">
-      {/* Prototype Header & Clinical Disclaimer Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 card-shadow space-y-4">
+      {/* Header matching Screenshot 2 & 3 */}
+      <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs ${
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
             effectiveState === 'GOOD'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
+              ? 'bg-emerald-50 text-emerald-600'
               : effectiveState === 'POOR'
-              ? 'bg-amber-50 border-amber-200 text-amber-600'
-              : 'bg-rose-50 border-rose-200 text-rose-600'
+              ? 'bg-amber-50 text-amber-600'
+              : 'bg-rose-50 text-rose-600'
           }`}>
             <ShieldCheck size={20} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-black text-gray-900 tracking-tight">AI Image Quality Gate</h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
-                Prototype v2.4
-              </span>
-            </div>
-            <p className="text-[11px] text-gray-500 font-medium">
-              Pipeline Rule: Quality first. Prediction second. (Pre-inference verification)
+            <h3 className="text-sm font-bold text-gray-900 tracking-tight">Trust-First Quality Gate</h3>
+            <p className="text-[11px] text-gray-500">
+              Automated pre-inference gradability validation
             </p>
           </div>
         </div>
 
-        {/* State Badge */}
+        {/* Status Pill matching Screenshot 2 & 3 */}
         <div>
           {effectiveState === 'GOOD' && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              <CheckCircle2 size={13} className="text-emerald-600" />
-              1. GOOD / ACCEPTED
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Gradable
             </span>
           )}
           {effectiveState === 'POOR' && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-              <AlertTriangle size={13} className="text-amber-600" />
-              2. POOR QUALITY / RECAPTURE
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              Poor Quality
             </span>
           )}
           {effectiveState === 'INVALID' && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-              <XCircle size={13} className="text-rose-600" />
-              3. INVALID / NO RETINAL IMAGE FOUND
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              Invalid Non-Fundus
             </span>
           )}
         </div>
       </div>
 
-      {/* Quick Demo Test Presets */}
-      {onSelectPreset && (
-        <div className="bg-gray-50/80 p-2.5 rounded-xl border border-gray-200 text-xs">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
-              <Sliders size={12} className="text-blue-600" />
-              Quick Quality Gate Test Presets:
-            </span>
-            <span className="text-[10px] text-gray-400">SIH Evaluator Demo Buttons</span>
+      {/* Optical Metrics Breakdown matching Screenshot 2 & 3 */}
+      <div className="space-y-3 pt-1">
+        <div>
+          <div className="flex justify-between text-xs text-gray-700 font-medium mb-1">
+            <span>Focus Sharpness</span>
+            <span className="font-mono text-gray-900 font-bold">{sharpness}%</span>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => onSelectPreset('good')}
-              className={`py-1.5 px-2 rounded-lg font-bold text-[11px] border transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                effectiveState === 'GOOD'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                sharpness >= 70 ? 'bg-emerald-500' : sharpness >= 40 ? 'bg-amber-500' : 'bg-rose-500'
               }`}
-            >
-              <CheckCircle2 size={11} /> 1. Good Fundus
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectPreset('poor')}
-              className={`py-1.5 px-2 rounded-lg font-bold text-[11px] border transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                effectiveState === 'POOR'
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                  : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+              style={{ width: `${Math.min(100, Math.max(0, sharpness))}%` }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between text-xs text-gray-700 font-medium mb-1">
+            <span>Illumination Uniformity</span>
+            <span className="font-mono text-gray-900 font-bold">{illumination}%</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                illumination >= 70 ? 'bg-emerald-500' : illumination >= 40 ? 'bg-amber-500' : 'bg-rose-500'
               }`}
-            >
-              <AlertTriangle size={11} /> 2. Blurry / Poor
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectPreset('invalid')}
-              className={`py-1.5 px-2 rounded-lg font-bold text-[11px] border transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                effectiveState === 'INVALID'
-                  ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                  : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'
+              style={{ width: `${Math.min(100, Math.max(0, illumination))}%` }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between text-xs text-gray-700 font-medium mb-1">
+            <span>Field of View (FoV)</span>
+            <span className="font-mono text-gray-900 font-bold">{fov}%</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                fov >= 70 ? 'bg-emerald-500' : fov >= 40 ? 'bg-amber-500' : 'bg-rose-500'
               }`}
-            >
-              <XCircle size={11} /> 3. Non-Retinal / Invalid
-            </button>
+              style={{ width: `${Math.min(100, Math.max(0, fov))}%` }}
+            />
           </div>
         </div>
-      )}
 
-      {/* Main Status Notice */}
-      {effectiveState === 'GOOD' && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 text-xs text-emerald-900">
-          <div className="flex items-center gap-2 font-bold text-emerald-950">
-            <CheckCircle2 size={16} className="text-emerald-600" />
-            Image Verified: Suitable for AI Classification
-          </div>
-          <p className="text-emerald-800 leading-relaxed">
-            The image is confirmed as a valid retinal fundus photograph. Optical sharpness, illumination, and vascular clarity satisfy clinical feature extraction thresholds.
-          </p>
-          {enhancementApplied && (
-            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
-              <Sparkles size={11} /> Upgraded via CLAHE illumination normalization
-            </div>
-          )}
-        </div>
-      )}
-
-      {effectiveState === 'POOR' && (
-        <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-xs text-amber-900">
-          <div className="flex items-center gap-2 font-bold text-amber-950">
-            <AlertTriangle size={16} className="text-amber-600" />
-            Sub-optimal Optical Quality — DR Prediction Blocked
-          </div>
-          <p className="text-amber-800 leading-relaxed">
-            Fundus characteristics were recognized, but blur or uneven illumination could lead to misleading feature extraction. The DR classification model is held back until resolved.
-          </p>
-          <div className="bg-amber-100/60 p-2.5 rounded-lg border border-amber-200 text-[11px] text-amber-950 space-y-1">
-            <span className="font-bold flex items-center gap-1">
-              <HelpCircle size={12} /> Recommended Operator Action:
-            </span>
-            <ul className="list-disc list-inside space-y-0.5 text-amber-900">
-              <li>Instruct patient to fixate steadily on the central target.</li>
-              <li>Wait 2 minutes for natural dark adaptation or adjust flash brightness.</li>
-              <li>Or click <strong>"Try Automated Enhancement"</strong> below.</li>
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {effectiveState === 'INVALID' && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl space-y-2.5 text-xs text-rose-900">
-          <div className="flex items-center gap-2 font-black text-rose-950 text-sm">
-            <AlertOctagon size={18} className="text-rose-600" />
-            INVALID / NO RETINAL IMAGE FOUND
-          </div>
-          <p className="text-rose-800 leading-relaxed">
-            The uploaded image does not match retinal fundus optical patterns (e.g., photo of a document, general scene, or non-ocular surface).
-          </p>
-          <div className="p-2.5 bg-rose-100/70 rounded-lg border border-rose-200 text-[11px] text-rose-950 font-semibold">
-            🚫 STRICT PIPELINE LOCK: DR classification model will NOT be executed for non-retinal imagery.
-          </div>
-        </div>
-      )}
-
-      {/* Optical Metrics Breakdown */}
-      <div className="space-y-2.5 bg-gray-50/80 p-3.5 rounded-xl border border-gray-200/80">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-bold text-gray-800">Optical Quality Diagnostics:</span>
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <span className="text-xs font-bold text-gray-700">Overall Quality Index</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-gray-500 font-medium">Quality Index:</span>
             <span className={`text-sm font-black font-mono ${
               effectiveState === 'GOOD' ? 'text-emerald-600' : effectiveState === 'POOR' ? 'text-amber-600' : 'text-rose-600'
             }`}>
               {score}%
             </span>
+            <span className="text-[10px] text-gray-400 font-mono">(≥70% required)</span>
           </div>
         </div>
-
-        <QualityBar label="Focus & Vessel Sharpness" value={sharpness} />
-        <QualityBar label="Illumination Uniformity" value={illumination} />
-        <QualityBar label="Field of View & Centering" value={fov} />
-        <QualityBar label="Tissue Contrast Ratio" value={contrast} />
       </div>
 
-      {/* Detected Issues */}
-      {issues.length > 0 && (
-        <div className="space-y-1.5 text-xs">
-          <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">
-            Detected Optical Observations:
+      {/* Main Status Notice matching Screenshot 2 & 3 */}
+      {effectiveState === 'GOOD' && (
+        <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1 text-xs text-emerald-900">
+          <div className="flex items-center gap-1.5 font-bold text-emerald-950">
+            <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+            <span>Image is clinically gradable</span>
+          </div>
+          <p className="text-emerald-800 text-[11px] leading-relaxed pl-5">
+            Retinal landmarks (optic disc and macula) are adequately resolved for AI-assisted diabetic retinopathy feature extraction.
+          </p>
+        </div>
+      )}
+
+      {effectiveState === 'POOR' && (
+        <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl space-y-1.5 text-xs text-amber-900">
+          <div className="flex items-center gap-1.5 font-bold text-amber-950">
+            <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+            <span>Sub-optimal Optical Quality — DR Prediction Blocked</span>
+          </div>
+          <p className="text-amber-800 text-[11px] leading-relaxed pl-5">
+            Blur or uneven illumination detected. Recapture recommended or apply automated enhancement below.
+          </p>
+        </div>
+      )}
+
+      {effectiveState === 'INVALID' && (
+        <div className="p-3.5 bg-rose-50/80 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
+          <div className="flex items-center gap-1.5 font-bold text-rose-950">
+            <AlertOctagon size={15} className="text-rose-600 shrink-0" />
+            <span>Non-Retinal Subject / Invalid Image</span>
+          </div>
+          <p className="text-rose-800 text-[11px] leading-relaxed pl-5">
+            Image lacks retinal fundus vascular architecture and disc landmarks. Please upload an authentic eye photo.
+          </p>
+        </div>
+      )}
+
+      {/* Adaptive Enhancement Banner matching Screenshot 3 */}
+      <div className="flex items-center justify-between p-2.5 bg-blue-50/50 border border-blue-100 rounded-xl text-xs text-blue-900">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-blue-600 shrink-0" />
+          <span className="text-[11px]">
+            <strong className="text-blue-950">Adaptive Enhancement (CLAHE):</strong> Illumination normalized & denoised
           </span>
-          <div className="flex flex-wrap gap-1.5">
-            {issues.map((iss, i) => (
-              <span
-                key={i}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-medium border flex items-center gap-1 ${
-                  effectiveState === 'INVALID'
-                    ? 'bg-rose-50 text-rose-800 border-rose-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
-                }`}
-              >
-                <AlertTriangle size={10} />
-                {iss}
-              </span>
-            ))}
+        </div>
+        {onToggleEnhancement && (
+          <button
+            type="button"
+            onClick={() => onToggleEnhancement(!enhancementApplied)}
+            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
+              enhancementApplied
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
+            }`}
+          >
+            {enhancementApplied ? 'Active ✓' : 'Enable'}
+          </button>
+        )}
+      </div>
+
+      {/* Quick Test Presets */}
+      {onSelectPreset && (
+        <div className="pt-1 flex items-center justify-between gap-1.5 text-[10px] text-gray-500">
+          <span className="flex items-center gap-1 font-semibold">
+            <Sliders size={11} className="text-blue-600" /> Presets:
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onSelectPreset('good')}
+              className="px-2 py-0.5 rounded bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 cursor-pointer font-medium"
+            >
+              1. Good (93%)
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectPreset('poor')}
+              className="px-2 py-0.5 rounded bg-gray-100 hover:bg-amber-50 hover:text-amber-700 border border-gray-200 cursor-pointer font-medium"
+            >
+              2. Blurry (52%)
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectPreset('invalid')}
+              className="px-2 py-0.5 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-700 border border-gray-200 cursor-pointer font-medium"
+            >
+              3. Invalid (16%)
+            </button>
           </div>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="pt-2 space-y-2.5 border-t border-gray-100">
-        {effectiveState === 'POOR' && onToggleEnhancement && (
-          <button
-            type="button"
-            onClick={() => onToggleEnhancement(!enhancementApplied)}
-            className="w-full py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-          >
-            <Sparkles size={14} className="text-indigo-600" />
-            {enhancementApplied
-              ? 'Revert to Raw Captured Frame'
-              : '✨ Try Automated Enhancement (CLAHE + Denoise)'}
-          </button>
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-2.5">
-          {onRecapture && (
+      {/* CTA Action Button matching Screenshot 3: "Send to AI Model ->" */}
+      <div className="pt-2 space-y-2">
+        <div className="flex gap-2">
+          {onRecapture && effectiveState !== 'GOOD' && (
             <button
               type="button"
               onClick={onRecapture}
-              className={`py-2.5 px-4 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border ${
-                effectiveState === 'GOOD'
-                  ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 w-full sm:w-1/3'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600 flex-1 shadow-sm'
-              }`}
+              className="w-1/3 py-2.5 px-3 rounded-xl font-bold text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <RefreshCw size={13} />
-              {effectiveState === 'INVALID' ? 'Upload Valid Fundus' : 'Recapture Image'}
+              Recapture
             </button>
           )}
 
@@ -302,26 +285,20 @@ export function QualityGate({
               type="button"
               onClick={onProceed}
               disabled={!isProceedAllowed}
-              className={`py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer flex-1 shadow-sm ${
+              className={`w-full py-3 px-5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                 isProceedAllowed
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 active:scale-[0.99]'
                   : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
               }`}
             >
               {isAnalyzing ? (
                 <>
-                  <RefreshCw size={14} className="animate-spin text-white" />
-                  Running AI Pipeline…
-                </>
-              ) : isProceedAllowed ? (
-                <>
-                  Send to AI DR Classification Model
-                  <ArrowRight size={14} />
+                  <RefreshCw size={15} className="animate-spin text-white" />
+                  Running AI Model…
                 </>
               ) : (
                 <>
-                  <ShieldAlert size={14} />
-                  AI Classification Locked (Pass Quality Check First)
+                  Send to AI Model →
                 </>
               )}
             </button>

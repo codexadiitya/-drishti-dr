@@ -618,7 +618,11 @@ export function NewScreening() {
             {/* Camera Viewport / Live Feed Simulator */}
             <div className="space-y-3">
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-black border-2 border-dashed border-gray-700 flex items-center justify-center group">
-                <FundusViewer showControls={false} eye={activeEye} />
+                <FundusViewer
+                  showControls={false}
+                  eye={activeEye}
+                  imageUrl={uploadedImageUrl || '/clinical-fundus-bg.jpg'}
+                />
 
                 {/* Alignment Reticle & Target Guide */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
@@ -711,7 +715,7 @@ export function NewScreening() {
               showControls={qualityData.overall === 'gradable'}
               defaultMode={claheEnhanced ? 'enhanced' : 'original'}
               eye={activeEye}
-              imageUrl={uploadedImageUrl || undefined}
+              imageUrl={uploadedImageUrl || '/clinical-fundus-bg.jpg'}
             />
           </div>
 

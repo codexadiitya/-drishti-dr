@@ -239,7 +239,7 @@ function FundusImage({
 
           {/* Grad-CAM Heatmap: when no backend gradcamUrl is provided, or in combined mode overlay */}
           {showGradCam && (!gradcamUrl || mode === 'combined') && (
-            <g id="gradcam-heatmap" style={{ mixBlendMode: 'screen' }}>
+            <g id="gradcam-heatmap" style={{ mixBlendMode: 'screen', opacity: heatmapOpacity }}>
               <circle cx="165" cy="215" r="75" fill="url(#heat1)" />
               <circle cx="185" cy="200" r="55" fill="url(#heat2)" />
               <circle cx="145" cy="205" r="45" fill="url(#heat3)" />
