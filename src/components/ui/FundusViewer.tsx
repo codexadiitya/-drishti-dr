@@ -164,32 +164,56 @@ function FundusImage({
             </>
           )}
 
-          {/* Optic Disc (fallback synthetic mode only) */}
-          {!hasRealImage && showOriginal && (
-            <g id="optic-disc">
-              <ellipse cx="265" cy="188" rx="28" ry="34" fill="url(#disc-grad)" />
-              <ellipse cx="263" cy="188" rx="14" ry="18" fill="url(#cup-grad)" />
-              {mode === 'vessel' && (
-                <ellipse cx="265" cy="188" rx="30" ry="36" fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeDasharray="3 2" />
+          {/* Optic Disc landmark — shown on both real and synthetic images */}
+          {showOriginal && (
+            <g id="optic-disc" opacity={hasRealImage ? 0.45 : 1}>
+              {!hasRealImage && (
+                <>
+                  <ellipse cx="265" cy="188" rx="28" ry="34" fill="url(#disc-grad)" />
+                  <ellipse cx="263" cy="188" rx="14" ry="18" fill="url(#cup-grad)" />
+                </>
+              )}
+              {/* Optic disc ring annotation — always visible */}
+              <ellipse cx="265" cy="188" rx="30" ry="36" fill="none"
+                stroke={isVesselMode ? '#60a5fa' : hasRealImage ? '#facc15' : 'none'}
+                strokeWidth="1.5" strokeDasharray="4 3" />
+              {/* Optic disc label dot */}
+              <circle cx="265" cy="155" r="3" fill="#facc15" opacity={hasRealImage ? 0.8 : 0} />
+              <text x="272" y="152" fontSize="9" fill="#facc15" fontFamily="monospace"
+                opacity={hasRealImage ? 0.85 : 0}>OD</text>
+            </g>
+          )}
+
+          {/* Fovea / Macula — shown on both real and synthetic images */}
+          {showOriginal && (
+            <g id="macula" opacity={hasRealImage ? 0.45 : 1}>
+              {!hasRealImage && (
+                <>
+                  <ellipse cx="150" cy="202" rx="36" ry="30" fill="url(#fovea-grad)" />
+                  <circle cx="150" cy="202" r="6" fill="#040100" opacity="0.95" />
+                  <circle cx="150" cy="202" r="1.5" fill="#ffe090" opacity="0.6" />
+                </>
+              )}
+              {/* Foveal marker annotation — always visible */}
+              <ellipse cx="150" cy="202" rx="18" ry="15" fill="none"
+                stroke={isVesselMode ? '#eab308' : hasRealImage ? '#38bdf8' : 'none'}
+                strokeWidth="1" strokeDasharray="3 2" />
+              {/* Crosshair */}
+              {hasRealImage && (
+                <>
+                  <line x1="143" y1="202" x2="157" y2="202" stroke="#38bdf8" strokeWidth="0.8" opacity="0.9" />
+                  <line x1="150" y1="195" x2="150" y2="209" stroke="#38bdf8" strokeWidth="0.8" opacity="0.9" />
+                  <circle cx="150" cy="202" r="2" fill="#38bdf8" opacity="0.85" />
+                  <text x="155" y="195" fontSize="9" fill="#38bdf8" fontFamily="monospace" opacity="0.85">Fovea</text>
+                </>
               )}
             </g>
           )}
 
-          {/* Fovea / Macula (fallback synthetic mode only) */}
-          {!hasRealImage && showOriginal && (
-            <g id="macula">
-              <ellipse cx="150" cy="202" rx="36" ry="30" fill="url(#fovea-grad)" />
-              <circle cx="150" cy="202" r="6" fill="#040100" opacity="0.95" />
-              <circle cx="150" cy="202" r="1.5" fill="#ffe090" opacity="0.6" />
-              {mode === 'vessel' && (
-                <ellipse cx="150" cy="202" rx="38" ry="32" fill="none" stroke="#eab308" strokeWidth="1" strokeDasharray="2 2" />
-              )}
-            </g>
-          )}
-
-          {/* Retinal Vessels (fallback synthetic mode only) */}
-          {!hasRealImage && showVessels && (
-            <g id="vessels" stroke={vesselColor} fill="none" strokeLinecap="round">
+          {/* Retinal Vessel Arcades — always rendered, semi-transparent on real images */}
+          {showVessels && (
+            <g id="vessels" stroke={vesselColor} fill="none" strokeLinecap="round"
+              opacity={hasRealImage ? 0.38 : 1}>
               <path d="M 263 180 Q 255 130 220 95 Q 190 70 140 65" strokeWidth={isVesselMode ? 3.5 : 2.8} />
               <path d="M 220 95 Q 185 85 140 90 Q 100 100 70 120" strokeWidth={isVesselMode ? 2.5 : 2} />
               <path d="M 263 196 Q 252 245 218 285 Q 180 320 130 330" strokeWidth={isVesselMode ? 3.5 : 2.8} />
