@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build
+dist/
+build/
+.dist/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Python & ML
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+*.egg-info/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Large Binaries & Archives
+cloudflared.exe
+*.zip
+*.tar.gz
+
+# Figma & Dev tooling cache
+.figma/

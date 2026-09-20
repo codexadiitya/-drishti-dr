@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /*
+   * Light clinical theme — inverted slate scale.
+   * High numbers (800-950) = backgrounds (light).
+   * Low numbers (100-400) = text (dark).
+   * All existing components update automatically.
+   */
+  --color-slate-950: #EEF2F7;   /* Page background — soft blue-gray */
+  --color-slate-900: #FFFFFF;   /* Cards, panels — white */
+  --color-slate-800: #F1F5FB;   /* Subtle elevated surface */
+  --color-slate-700: #DDE5F0;   /* Borders */
+  --color-slate-600: #9BAABF;   /* Muted borders / decorative text */
+  --color-slate-500: #6B7A90;   /* Muted text */
+  --color-slate-400: #475569;   /* Secondary text */
+  --color-slate-300: #2D3A4A;   /* Medium text */
+  --color-slate-200: #1C2733;   /* Near-primary text */
+  --color-slate-100: #111827;   /* Primary text */
+  --color-slate-50:  #0A0F18;   /* Darkest — rarely used */
+
+  /* Blue accent — calm, readable on white */
+  --color-cyan-400:  #2563EB;   /* Primary interactive blue */
+  --color-cyan-500:  #1D4ED8;   /* Darker blue for backgrounds */
+  --color-cyan-300:  #3B82F6;   /* Lighter blue */
+
+  /* Teal */
+  --color-teal-400:  #0D9488;
+  --color-teal-500:  #0F766E;
+
+  /* Semantic — dark enough for contrast on white */
+  --color-emerald-400: #059669;
+  --color-emerald-500: #047857;
+  --color-amber-400:   #D97706;
+  --color-amber-500:   #B45309;
+  --color-red-400:     #DC2626;
+  --color-red-500:     #B91C1C;
+}
+
+html, body, #root {
+  height: 100%;
+  background-color: #EEF2F7;
+  color: #111827;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #DDE5F0 transparent;
+}
+
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #DDE5F0; border-radius: 2px; }
+*::-webkit-scrollbar-thumb:hover { background: #9BAABF; }
+
+.fundus-shadow {
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12), 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.card-shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; color: black; }
+}
