@@ -195,9 +195,7 @@ export function NewScreening() {
   function simulateCapture(eye: EyeExamined) {
     setCapturedEyes(prev => ({ ...prev, [eye === 'Both' ? 'OD' : eye]: true }));
     setIsCameraActive(false);
-    if (!uploadedImageUrl) {
-      setUploadedImageUrl('/clinical-fundus-bg.jpg');
-    }
+    // no fallback photo — show synthetic dark fundus simulation until real image is uploaded
 
     // Apply quality parameters based on selected scenario
     if (selectedScenario === 'ungradable') {
@@ -346,7 +344,7 @@ export function NewScreening() {
             reason: `Referable ${result.dr_prediction.label} identified in screening camp.`,
           }
         : undefined,
-      imageUrl: uploadedImageUrl || (result as any).enhanced_image_url || '/clinical-fundus-bg.jpg',
+      imageUrl: uploadedImageUrl || (result as any).enhanced_image_url || undefined,
       enhancedImageUrl: (result as any).enhanced_image_url || uploadedImageUrl || undefined,
       gradcamUrl: (result as any).gradcam_url || undefined,
       auditTrail: [
@@ -621,7 +619,7 @@ export function NewScreening() {
                 <FundusViewer
                   showControls={false}
                   eye={activeEye}
-                  imageUrl={uploadedImageUrl || '/clinical-fundus-bg.jpg'}
+                  imageUrl={uploadedImageUrl || undefined}
                 />
 
                 {/* Alignment Reticle & Target Guide */}
@@ -715,7 +713,7 @@ export function NewScreening() {
               showControls={qualityData.overall === 'gradable'}
               defaultMode={claheEnhanced ? 'enhanced' : 'original'}
               eye={activeEye}
-              imageUrl={uploadedImageUrl || '/clinical-fundus-bg.jpg'}
+              imageUrl={uploadedImageUrl || undefined}
             />
           </div>
 
