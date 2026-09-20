@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell, ChevronDown, CheckCircle2,
-  Wifi, Stethoscope, Users, Cpu
+  Wifi, Stethoscope, Users, Cpu, LogIn
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
 import type { UserRole } from '../../lib/types';
@@ -172,6 +172,16 @@ export function Header() {
                 <div className="text-[10px] text-gray-500">{userRole === 'doctor' ? 'Clinical Reviewer' : 'PHC Field Operator'}</div>
               </div>
               <div className="p-1 text-xs">
+                <button
+                  onClick={() => {
+                    setProfileOpen(false);
+                    navigate('/login');
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer flex items-center justify-between"
+                >
+                  <span>Sign In / Switch User</span>
+                  <LogIn size={13} className="text-gray-400" />
+                </button>
                 <button
                   onClick={() => {
                     setProfileOpen(false);

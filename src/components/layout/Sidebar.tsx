@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ScanEye, Users, BarChart2, FileText,
   BrainCircuit, BarChart3, Settings, Bell, ShieldCheck,
-  Stethoscope, Send, Award, ArrowRight
+  Stethoscope, Send, Award, ArrowRight, LogIn
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
 
@@ -180,6 +180,28 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             >
               <BarChart3 size={15} />
               {!collapsed && <span>Capacity Simulation</span>}
+            </NavLink>
+
+            <NavLink
+              to="/architecture"
+              className={({ isActive }) => `
+                flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all
+                ${isActive ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
+              `}
+            >
+              <BrainCircuit size={15} />
+              {!collapsed && <span>System Architecture</span>}
+            </NavLink>
+
+            <NavLink
+              to="/login"
+              className={({ isActive }) => `
+                flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all
+                ${isActive ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
+              `}
+            >
+              <LogIn size={15} />
+              {!collapsed && <span>Login Portal</span>}
             </NavLink>
 
             <NavLink

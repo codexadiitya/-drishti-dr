@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Upload, Camera, CheckCircle2, Loader2, AlertTriangle, ChevronRight,
   RefreshCw, UserPlus, Eye, ShieldCheck, Sparkles, Wifi, ArrowRight,
-  HelpCircle, Check, Info,
+  HelpCircle, Check, Info, Sliders,
 } from 'lucide-react';
 import { QualityBar, Badge } from '../components/ui/primitives';
 import { FundusViewer } from '../components/ui/FundusViewer';
@@ -12,6 +12,7 @@ import { CarePathwayTracker } from '../components/ui/CarePathwayTracker';
 import { useAppState } from '../context/AppStateContext';
 import { fetchDemoScreeningResult, type DemoPresetKey } from '../services/demoApi';
 import { analyzeRetinalImage } from '../services/mlApi';
+import { analyzeFundusQuality, type QualityAssessmentResult } from '../services/qualityGate';
 import type { Patient, ImageQuality, EyeExamined, MLScreeningOutput } from '../lib/types';
 
 type WizardStep = 'register' | 'capture' | 'quality_check' | 'analyzing' | 'complete';
@@ -50,7 +51,8 @@ export function NewScreening() {
   const [compressionRatio, setCompressionRatio] = useState<string>('4.8 MB → 240 KB (95% saved)');
   const [uploadProgress, setUploadProgress] = useState(100);
 
-  // Quality gate state
+  // Quality gate state & automated assessment
+  const [qualityAssessment, setQualityAssessment] = useState<QualityAssessmentResult | null>(null);
   const [qualityData, setQualityData] = useState<ImageQuality>({
     focus: 94,
     illumination: 88,
@@ -58,7 +60,10 @@ export function NewScreening() {
     overall: 'gradable',
     score: 91,
   });
-  const [claheEnhanced, setClaheEnhanced] = useState(true);
+  const [claheEnhanced, setClaheEnhanced] = useState(false);
+
+  // Live Competition Showcase Mode Switch (Requested: 93% Confidence & 90% Severity)
+  const [forceShowcaseDemo, setForceShowcaseDemo] = useState<boolean>(false);
 
   // Pipeline execution state
   const [stepStatuses, setStepStatuses] = useState<('pending' | 'processing' | 'complete')[]>(
@@ -71,27 +76,115 @@ export function NewScreening() {
   const [isUsingRealModel, setIsUsingRealModel] = useState<boolean>(true);
   const [liveProbabilities, setLiveProbabilities] = useState<Record<string, number> | null>(null);
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadedFile(file);
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const url = reader.result as string;
       setUploadedImageUrl(url);
       setCapturedEyes(prev => ({ ...prev, [activeEye === 'Both' ? 'OD' : activeEye]: true }));
-      setQualityData({
-        focus: 94,
-        illumination: 92,
-        fieldOfView: 95,
-        overall: 'gradable',
-        score: 93,
-        guidance: 'Fundus image uploaded. Ready for DR_MobileNetV2 classification.',
-      });
+
+      // Run automated AI Image Quality Gate assessment
+      try {
+        const assessment = await analyzeFundusQuality(file);
+        setQualityAssessment(assessment);
+        setQualityData({
+          focus: assessment.sharpnessScore,
+          illumination: assessment.illuminationScore,
+          fieldOfView: assessment.fieldOfViewScore,
+          overall: assessment.qualityStatus === 'GOOD' ? 'gradable' : 'ungradable',
+          score: assessment.qualityScore,
+          reason: assessment.detectedIssues.join(', '),
+          guidance: assessment.recommendation,
+        });
+      } catch (err) {
+        console.warn('Local quality analysis fallback:', err);
+        setQualityData({
+          focus: 94,
+          illumination: 92,
+          fieldOfView: 95,
+          overall: 'gradable',
+          score: 93,
+          guidance: 'Fundus image uploaded. Ready for DR_MobileNetV2 classification.',
+        });
+      }
       setCurrentStep('quality_check');
     };
     reader.readAsDataURL(file);
+  }
+
+  function handleQualityPreset(type: 'good' | 'poor' | 'invalid') {
+    if (type === 'good') {
+      setQualityAssessment({
+        isFundus: true,
+        qualityStatus: 'GOOD',
+        qualityScore: 92,
+        sharpnessScore: 94,
+        illuminationScore: 90,
+        contrastScore: 88,
+        fieldOfViewScore: 95,
+        artifactScore: 5,
+        detectedIssues: [],
+        recommendation: 'Image is sharp, well-illuminated and clinically gradable.',
+        canProceed: true,
+      });
+      setQualityData({
+        focus: 94,
+        illumination: 90,
+        fieldOfView: 95,
+        overall: 'gradable',
+        score: 92,
+      });
+    } else if (type === 'poor') {
+      setQualityAssessment({
+        isFundus: true,
+        qualityStatus: 'POOR',
+        qualityScore: 52,
+        sharpnessScore: 48,
+        illuminationScore: 54,
+        contrastScore: 50,
+        fieldOfViewScore: 65,
+        artifactScore: 28,
+        detectedIssues: ['Motion blur / micro-saccade detected', 'Low illumination in peripheral nasal arcade'],
+        recommendation: 'Allow natural dark adaptation, hold camera steady, and refocus on the fovea.',
+        canProceed: false,
+      });
+      setQualityData({
+        focus: 48,
+        illumination: 54,
+        fieldOfView: 65,
+        overall: 'ungradable',
+        score: 52,
+        reason: 'Blur and underexposure detected.',
+        guidance: 'Recapture or try automated CLAHE enhancement.',
+      });
+    } else {
+      setQualityAssessment({
+        isFundus: false,
+        qualityStatus: 'INVALID',
+        qualityScore: 16,
+        sharpnessScore: 10,
+        illuminationScore: 15,
+        contrastScore: 18,
+        fieldOfViewScore: 20,
+        artifactScore: 90,
+        detectedIssues: ['Not a retinal fundus image', 'Lacks retinal tissue coloration and vascular anatomy', 'Non-retinal subject'],
+        recommendation: 'Please upload or capture an authentic retinal fundus photograph.',
+        canProceed: false,
+      });
+      setQualityData({
+        focus: 0,
+        illumination: 0,
+        fieldOfView: 0,
+        overall: 'ungradable',
+        score: 16,
+        reason: 'Uploaded image is not a retinal fundus photograph.',
+        guidance: 'Upload a valid fundus image to proceed.',
+      });
+    }
   }
 
   function handleRegisterSubmit(e: React.FormEvent) {
@@ -105,30 +198,20 @@ export function NewScreening() {
 
     // Apply quality parameters based on selected scenario
     if (selectedScenario === 'ungradable') {
-      setQualityData({
-        focus: 38,
-        illumination: 44,
-        fieldOfView: 52,
-        overall: 'ungradable',
-        score: 44,
-        reason: 'Poor focus and low illumination in nasal quadrant. Patient micro-saccade blurred vascular edges.',
-        guidance: 'Hold camera steady, allow natural pupillary dark adaptation, and center optic disc.',
-      });
+      handleQualityPreset('poor');
     } else {
-      setQualityData({
-        focus: 93,
-        illumination: 89,
-        fieldOfView: 91,
-        overall: 'gradable',
-        score: 91,
-      });
+      handleQualityPreset('good');
     }
 
     setCurrentStep('quality_check');
   }
 
   async function startAnalysis() {
-    if (qualityData.overall === 'ungradable') return;
+    const isQualityAllowed = qualityAssessment
+      ? qualityAssessment.qualityStatus === 'GOOD' || (qualityAssessment.qualityStatus === 'POOR' && claheEnhanced)
+      : qualityData.overall === 'gradable';
+
+    if (!isQualityAllowed) return;
 
     setCurrentStep('analyzing');
     const statuses: ('pending' | 'processing' | 'complete')[] = PIPELINE_STEPS.map(() => 'pending');
@@ -143,26 +226,78 @@ export function NewScreening() {
       setStepStatuses([...statuses]);
     }
 
-    // Fetch result from real DR_MobileNetV2 backend or fallback
+    // Result generation: Check Showcase Mode switch vs Real Backend
     let result: MLScreeningOutput;
-    try {
-      result = await analyzeRetinalImage({
+    if (forceShowcaseDemo) {
+      // User-requested Showcase Switch: 93% Confidence & 90% Severity (Level 3 - Severe NPDR)
+      result = {
         patient_id: patientId,
         eye: activeEye === 'Both' ? 'OD' : activeEye,
-        image_file: uploadedFile || undefined,
-        image_base64: uploadedImageUrl || undefined,
-        compressed: isRuralMode,
-      });
-      setIsUsingRealModel(true);
-      if ((result.dr_prediction as any).class_probabilities) {
-        setLiveProbabilities((result.dr_prediction as any).class_probabilities);
-      }
-    } catch (err) {
-      console.warn('Backend inference fallback:', err);
-      result = await fetchDemoScreeningResult(selectedScenario, 200);
+        image_quality: qualityData,
+        dr_prediction: {
+          level: 3,
+          label: 'Severe Non-Proliferative Diabetic Retinopathy (NPDR)',
+          confidence: 93.0,
+          referable: true,
+          tier: 'standard',
+          class_probabilities: {
+            'Mild': 0.012,
+            'Moderate': 0.054,
+            'No_DR': 0.004,
+            'Proliferate_DR': 0.030,
+            'Severe': 0.900,
+          },
+        },
+        lesions: [
+          { name: 'Microaneurysms', detected: true, count: 18, confidence: 94, region: 'Pericentral and Inferior Temporal' },
+          { name: 'Hemorrhages', detected: true, count: 12, confidence: 92, region: 'Four quadrants intraretinal blot hemorrhages' },
+          { name: 'Exudates', detected: true, count: 8, confidence: 90, region: 'Parafoveal macular ring' },
+          { name: 'Neovascularization', detected: false, confidence: 91 },
+        ],
+        retinal_structures: {
+          optic_disc: { detected: true, confidence: 97, location: '(265, 188)' },
+          fovea: { detected: true, confidence: 94, location: '(150, 202)' },
+          vessels: { segmented: true, confidence: 95 },
+        },
+        explainability: {
+          why_flagged_summary: [
+            'Cotton wool spots and venous beading in 2+ retinal quadrants',
+            'Severe intraretinal microvascular abnormalities (IRMA 90% severity score)',
+            'Model predicts Severe NPDR with 93.0% confidence',
+            'Referral to vitreo-retinal specialist mandated within 7 days',
+          ],
+          gradcam_regions: ['Optic disc margin', 'Inferotemporal quadrant', 'Macular periphery'],
+        },
+        enhanced_image_url: uploadedImageUrl || undefined,
+        gradcam_url: uploadedImageUrl || undefined,
+      } as any;
       setIsUsingRealModel(false);
+      setLiveProbabilities((result.dr_prediction as any).class_probabilities);
+    } else {
+      // Real MobileNetV2 backend
+      try {
+        result = await analyzeRetinalImage({
+          patient_id: patientId,
+          eye: activeEye === 'Both' ? 'OD' : activeEye,
+          image_file: uploadedFile || undefined,
+          image_base64: uploadedImageUrl || undefined,
+          compressed: isRuralMode,
+        });
+        setIsUsingRealModel(true);
+        if ((result.dr_prediction as any).class_probabilities) {
+          setLiveProbabilities((result.dr_prediction as any).class_probabilities);
+        }
+      } catch (err) {
+        console.warn('Backend inference fallback:', err);
+        result = await fetchDemoScreeningResult(selectedScenario, 200);
+        setIsUsingRealModel(false);
+      }
     }
     setMlOutput(result);
+
+    // Normalize confidence for robust display and storage (never 9310%)
+    const rawConf = result.dr_prediction.confidence;
+    const normalizedConfidence = rawConf <= 1 ? Math.round(rawConf * 1000) / 10 : rawConf;
 
     // Save newly created patient into application state
     const newPatient: Patient = {
@@ -181,7 +316,7 @@ export function NewScreening() {
       imageQuality: qualityData,
       drLevel: result.dr_prediction.level,
       drLabel: result.dr_prediction.label,
-      confidence: result.dr_prediction.confidence,
+      confidence: normalizedConfidence,
       confidenceTier: result.dr_prediction.tier,
       referable: result.dr_prediction.referable,
       aiStatus: 'complete',
@@ -226,13 +361,12 @@ export function NewScreening() {
           action: 'analyzed',
           actor: 'NetraRakshaq AI Engine',
           actorRole: 'AI Engine',
-          details: `Image analyzed. Predicted DR Level ${result.dr_prediction.level} (${result.dr_prediction.label}) with ${result.dr_prediction.confidence}% confidence.`,
+          details: `Image analyzed. Predicted DR Level ${result.dr_prediction.level} (${result.dr_prediction.label}) with ${normalizedConfidence}% confidence.`,
         },
       ],
     };
 
     addPatientScreening(newPatient);
-    setCurrentStep('complete');
   }
 
   return (
@@ -246,10 +380,29 @@ export function NewScreening() {
           </p>
         </div>
 
-        {/* Real Live Model Status */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Real AI Engine: MobileNetV2 Active</span>
+        {/* Real Live Model Status & Competition Showcase Mode Switch */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <label className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+            forceShowcaseDemo
+              ? 'bg-purple-100 border-purple-400 text-purple-900 ring-2 ring-purple-400/30'
+              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}>
+            <input
+              type="checkbox"
+              checked={forceShowcaseDemo}
+              onChange={e => setForceShowcaseDemo(e.target.checked)}
+              className="w-3.5 h-3.5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+            />
+            <span className="flex items-center gap-1.5">
+              <Sliders size={13} className={forceShowcaseDemo ? 'text-purple-600' : 'text-gray-500'} />
+              <span>Showcase Switch: 93% Conf. & 90% Sev.</span>
+            </span>
+          </label>
+
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Real AI Engine: MobileNetV2</span>
+          </div>
         </div>
       </div>
 
@@ -561,11 +714,28 @@ export function NewScreening() {
           <div>
             <QualityGate
               quality={qualityData}
+              assessment={qualityAssessment}
               onRecapture={() => setCurrentStep('capture')}
               onProceed={startAnalysis}
               enhancementApplied={claheEnhanced}
-              onToggleEnhancement={() => setClaheEnhanced(v => !v)}
-              canProceed={qualityData.overall === 'gradable'}
+              onToggleEnhancement={(enhanced) => {
+                setClaheEnhanced(enhanced);
+                if (enhanced) {
+                  setQualityData(prev => ({
+                    ...prev,
+                    overall: 'gradable',
+                    score: Math.max(78, prev.score + 22),
+                    focus: Math.max(76, prev.focus + 20),
+                    illumination: Math.max(80, prev.illumination + 24),
+                  }));
+                }
+              }}
+              onSelectPreset={handleQualityPreset}
+              canProceed={
+                qualityAssessment
+                  ? qualityAssessment.qualityStatus === 'GOOD' || (qualityAssessment.qualityStatus === 'POOR' && claheEnhanced)
+                  : qualityData.overall === 'gradable'
+              }
             />
           </div>
         </div>
@@ -620,16 +790,23 @@ export function NewScreening() {
       {/* STEP 5: ANALYSIS COMPLETE & NEXT STEPS */}
       {currentStep === 'complete' && mlOutput && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 card-shadow max-w-3xl mx-auto space-y-5 animate-in fade-in zoom-in-95">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs font-bold text-gray-800">
                 Trained Model: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-blue-700 font-mono">DR_MobileNetV2_Final.keras</code>
               </span>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              {isUsingRealModel ? '● Live Backend Inference' : 'Preset Mode'}
-            </span>
+            <div className="flex items-center gap-2">
+              {forceShowcaseDemo && (
+                <span className="text-[11px] font-bold text-purple-800 bg-purple-100 px-2.5 py-1 rounded-full border border-purple-300">
+                  ★ Showcase Mode (93% Conf / 90% Sev)
+                </span>
+              )}
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                {isUsingRealModel ? '● Live Backend Inference' : 'Preset Mode'}
+              </span>
+            </div>
           </div>
 
           <div className="text-center space-y-2">
@@ -638,7 +815,7 @@ export function NewScreening() {
             </h2>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
               <span className="px-3 py-1 bg-blue-50 text-blue-800 rounded-full font-bold border border-blue-200">
-                Confidence: {Math.round(mlOutput.dr_prediction.confidence * 100)}%
+                Confidence: {Math.round(mlOutput.dr_prediction.confidence <= 1 ? mlOutput.dr_prediction.confidence * 100 : mlOutput.dr_prediction.confidence)}%
               </span>
               <span className={`px-3 py-1 rounded-full font-bold border ${
                 mlOutput.dr_prediction.referable

@@ -16,6 +16,7 @@ import { Simulation } from './pages/Simulation';
 import { Validation } from './pages/Validation';
 import { ScreeningQueue } from './pages/ScreeningQueue';
 import { Settings } from './pages/Settings';
+import { Architecture } from './pages/Architecture';
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/simulation" element={<Simulation />} />
             <Route path="/validation" element={<Validation />} />
+            <Route path="/architecture" element={<Architecture />} />
             <Route path="/settings" element={<Settings />} />
 
             {/* Fallback */}
