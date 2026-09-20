@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAppState } from '../context/AppStateContext';
 import { FundusViewer, type OverlayMode } from '../components/ui/FundusViewer';
+import { FundusComparator } from '../components/ui/FundusComparator';
 import { Badge, ConfidenceMeter } from '../components/ui/primitives';
 import { DR_LEVEL_LABELS, DR_LEVEL_BG_BADGES } from '../lib/types';
 
@@ -82,11 +83,25 @@ export function Explainability() {
           <FundusViewer
             defaultMode={selectedMode}
             eye={patient.eye === 'Both' ? 'OD' : (patient.eye || 'OD')}
-            imageUrl={patient.imageUrl || '/clinical-fundus-bg.jpg'}
+            imageUrl={patient.imageUrl || undefined}
             enhancedImageUrl={patient.enhancedImageUrl}
             gradcamUrl={patient.gradcamUrl}
             onModeChange={m => setSelectedMode(m)}
           />
+
+          {/* Side-by-side CLAHE vs Grad-CAM Comparator */}
+          <div className="pt-2 border-t border-gray-100">
+            <h3 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
+              Preprocessing vs Grad-CAM Side-by-Side
+            </h3>
+            <FundusComparator
+              imageUrl={patient.imageUrl || undefined}
+              enhancedImageUrl={patient.enhancedImageUrl}
+              gradcamUrl={patient.gradcamUrl}
+              eye={patient.eye === 'Both' ? 'OD' : (patient.eye || 'OD')}
+            />
+          </div>
 
           {/* Heatmap Legend */}
           <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-between text-xs">
