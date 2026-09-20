@@ -167,7 +167,7 @@ export function Reports() {
               <FundusViewer
                 showControls={false}
                 defaultMode="gradcam"
-                imageUrl={patient?.imageUrl || '/clinical-fundus-bg.jpg'}
+                imageUrl={patient?.imageUrl || undefined}
                 enhancedImageUrl={patient?.enhancedImageUrl}
                 gradcamUrl={patient?.gradcamUrl}
               />
