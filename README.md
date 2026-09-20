@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.0-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-1.0-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/Backend-PyTorch%20%7C%20Keras%203-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Smart India Hackathon](https://img.shields.io/badge/SIH-Finalist%20Project-orange.svg)](https://www.sih.gov.in/)
+
 
 ---
 
