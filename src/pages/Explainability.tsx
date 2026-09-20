@@ -82,7 +82,9 @@ export function Explainability() {
           <FundusViewer
             defaultMode={selectedMode}
             eye={patient.eye === 'Both' ? 'OD' : (patient.eye || 'OD')}
-            imageUrl={selectedMode === 'gradcam' ? (patient.gradcamUrl || patient.imageUrl) : (patient.enhancedImageUrl || patient.imageUrl)}
+            imageUrl={patient.imageUrl || '/clinical-fundus-bg.jpg'}
+            enhancedImageUrl={patient.enhancedImageUrl}
+            gradcamUrl={patient.gradcamUrl}
             onModeChange={m => setSelectedMode(m)}
           />
 

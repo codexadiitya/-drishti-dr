@@ -163,7 +163,9 @@ export function DoctorReview() {
             <FundusViewer
               defaultMode={selectedOverlay}
               eye={patient.eye === 'Both' ? 'OD' : (patient.eye || 'OD')}
-              imageUrl={selectedOverlay === 'gradcam' ? (patient.gradcamUrl || patient.imageUrl) : (patient.enhancedImageUrl || patient.imageUrl)}
+              imageUrl={patient.imageUrl || '/clinical-fundus-bg.jpg'}
+              enhancedImageUrl={patient.enhancedImageUrl}
+              gradcamUrl={patient.gradcamUrl}
               onModeChange={m => setSelectedOverlay(m)}
             />
 

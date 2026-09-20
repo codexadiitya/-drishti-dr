@@ -164,7 +164,13 @@ export function Reports() {
               Grad-CAM Attention Map & Fundus Optical Scan
             </span>
             <div className="rounded-xl overflow-hidden border border-gray-300 aspect-square max-w-sm mx-auto">
-              <FundusViewer showControls={false} defaultMode="gradcam" />
+              <FundusViewer
+                showControls={false}
+                defaultMode="gradcam"
+                imageUrl={patient?.imageUrl || '/clinical-fundus-bg.jpg'}
+                enhancedImageUrl={patient?.enhancedImageUrl}
+                gradcamUrl={patient?.gradcamUrl}
+              />
             </div>
             <p className="text-[10px] text-gray-400 text-center font-mono">
               NetraRakshaq Grad-CAM Activation Overlay · Demonstrating model focus

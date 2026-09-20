@@ -319,7 +319,7 @@ export function Login() {
         />
 
         {/* Top Bar: Brand Badge & Multilingual Selector */}
-        <div className="relative z-10 flex items-center justify-between gap-3">
+        <div className="relative z-50 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg border border-white/20">
               <ScanEye size={22} className="text-white" />
@@ -349,11 +349,11 @@ export function Login() {
             {langDropdownOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-20"
+                  className="fixed inset-0 z-40"
                   onClick={() => setLangDropdownOpen(false)}
                 />
-                <div className="absolute right-0 top-10 w-56 max-h-80 overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 rounded-xl shadow-2xl py-1.5 z-30 text-xs animate-in fade-in zoom-in-95">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                <div className="absolute right-0 top-11 w-64 max-h-80 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-2xl py-1.5 z-50 text-xs text-gray-900 ring-1 ring-black/10">
+                  <div className="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 bg-gray-50/80">
                     Select Language / भाषा चुनें
                   </div>
                   {LANGUAGES.map(lang => {
@@ -369,7 +369,7 @@ export function Login() {
                         className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
                           isSelected
                             ? 'bg-blue-50 text-blue-900 font-bold'
-                            : 'text-gray-700 hover:bg-gray-100/80'
+                            : 'text-gray-700 hover:bg-gray-100'
                         }`}
                       >
                         <span className="truncate">

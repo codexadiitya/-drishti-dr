@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, Layers, Eye, Sparkles, Activity } from 'lucide-react';
 
 export type OverlayMode = 'original' | 'enhanced' | 'vessel' | 'lesion' | 'gradcam' | 'combined';
@@ -7,6 +7,8 @@ interface FundusImageProps {
   mode: OverlayMode;
   heatmapOpacity?: number;
   imageUrl?: string;
+  enhancedImageUrl?: string;
+  gradcamUrl?: string;
   zoom?: number;
 }
 
@@ -25,7 +27,14 @@ const EXUDATE_POSITIONS: [number, number, number][] = [
   [170, 224, 7], [186, 230, 5], [180, 212, 6],
 ];
 
-function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusImageProps) {
+function FundusImage({
+  mode,
+  heatmapOpacity = 0.7,
+  imageUrl,
+  enhancedImageUrl,
+  gradcamUrl,
+  zoom = 1,
+}: FundusImageProps) {
   const showOriginal = ['original', 'enhanced', 'vessel', 'lesion', 'combined'].includes(mode);
   const showVessels = ['original', 'enhanced', 'vessel', 'combined'].includes(mode);
   const showLesions = ['lesion', 'combined'].includes(mode);
@@ -33,8 +42,36 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
   const isVesselMode = mode === 'vessel';
   const isEnhanced = mode === 'enhanced';
 
-  const bgOpacity = showGradCam && mode !== 'combined' ? 0.35 : 1;
+  // Check whether we have a genuine clinical or user-uploaded photograph
+  const hasRealImage = Boolean(imageUrl || enhancedImageUrl || gradcamUrl);
+
+  // Determine active visual source depending on selected mode
+  let activeSrc = imageUrl;
+  if (mode === 'gradcam') {
+    activeSrc = gradcamUrl || imageUrl || enhancedImageUrl;
+  } else if (mode === 'enhanced') {
+    activeSrc = enhancedImageUrl || imageUrl;
+  } else if (mode === 'original') {
+    activeSrc = imageUrl || enhancedImageUrl;
+  } else if (mode === 'combined') {
+    activeSrc = gradcamUrl || enhancedImageUrl || imageUrl;
+  } else {
+    // vessel, lesion
+    activeSrc = imageUrl || enhancedImageUrl;
+  }
+
+  const bgOpacity = showGradCam && mode !== 'combined' && !hasRealImage ? 0.35 : 1;
   const vesselColor = isVesselMode ? '#60a5fa' : isEnhanced ? '#d04535' : '#b83520';
+
+  // Filter effect when rendering real fundus photos
+  let imageFilter: string | undefined = undefined;
+  if (hasRealImage) {
+    if (mode === 'enhanced' && !enhancedImageUrl) {
+      imageFilter = 'contrast(135%) brightness(104%) saturate(115%)';
+    } else if (mode === 'vessel') {
+      imageFilter = 'contrast(175%) brightness(95%) hue-rotate(90deg)';
+    }
+  }
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
@@ -76,36 +113,38 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
             <stop offset="100%" stopColor="#1a0500" stopOpacity="0.1" />
           </radialGradient>
 
-          {/* Grad-CAM heatmap gradients */}
+          {/* Grad-CAM heatmap gradients for synthetic or layered blend */}
           <radialGradient id="heat1" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ef4444" stopOpacity={heatmapOpacity} />
-            <stop offset="40%" stopColor="#f97316" stopOpacity={heatmapOpacity * 0.7} />
-            <stop offset="70%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.4} />
+            <stop offset="40%" stopColor="#f97316" stopOpacity={heatmapOpacity * 0.75} />
+            <stop offset="70%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.45} />
             <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="heat2" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f97316" stopOpacity={heatmapOpacity * 0.75} />
-            <stop offset="50%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.4} />
+            <stop offset="0%" stopColor="#f97316" stopOpacity={heatmapOpacity * 0.8} />
+            <stop offset="50%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.45} />
             <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="heat3" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.55} />
-            <stop offset="60%" stopColor="#22c55e" stopOpacity={heatmapOpacity * 0.2} />
+            <stop offset="0%" stopColor="#eab308" stopOpacity={heatmapOpacity * 0.6} />
+            <stop offset="60%" stopColor="#22c55e" stopOpacity={heatmapOpacity * 0.25} />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
           </radialGradient>
         </defs>
 
         {/* Retinal Fundus Base */}
         <g clipPath="url(#fundus-clip)">
-          {imageUrl ? (
+          {activeSrc ? (
             <image
-              href={imageUrl}
+              href={activeSrc}
+              xlinkHref={activeSrc}
               x="0"
               y="0"
               width="400"
               height="400"
               preserveAspectRatio="xMidYMid slice"
               opacity={bgOpacity}
+              style={imageFilter ? { filter: imageFilter } : undefined}
             />
           ) : (
             <circle
@@ -117,16 +156,16 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
             />
           )}
 
-          {/* Choroidal texture (fallback synthetic mode) */}
-          {!imageUrl && showOriginal && !isVesselMode && (
+          {/* Choroidal texture (fallback synthetic mode only) */}
+          {!hasRealImage && showOriginal && !isVesselMode && (
             <>
               <ellipse cx="185" cy="195" rx="95" ry="85" fill="#2a0906" opacity="0.25" />
               <ellipse cx="160" cy="210" rx="65" ry="55" fill="#200704" opacity="0.2" />
             </>
           )}
 
-          {/* Optic Disc (fallback synthetic mode) */}
-          {!imageUrl && showOriginal && (
+          {/* Optic Disc (fallback synthetic mode only) */}
+          {!hasRealImage && showOriginal && (
             <g id="optic-disc">
               <ellipse cx="265" cy="188" rx="28" ry="34" fill="url(#disc-grad)" />
               <ellipse cx="263" cy="188" rx="14" ry="18" fill="url(#cup-grad)" />
@@ -136,8 +175,8 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
             </g>
           )}
 
-          {/* Fovea / Macula */}
-          {showOriginal && (
+          {/* Fovea / Macula (fallback synthetic mode only) */}
+          {!hasRealImage && showOriginal && (
             <g id="macula">
               <ellipse cx="150" cy="202" rx="36" ry="30" fill="url(#fovea-grad)" />
               <circle cx="150" cy="202" r="6" fill="#040100" opacity="0.95" />
@@ -148,8 +187,8 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
             </g>
           )}
 
-          {/* Retinal Vessels */}
-          {showVessels && (
+          {/* Retinal Vessels (fallback synthetic mode only) */}
+          {!hasRealImage && showVessels && (
             <g id="vessels" stroke={vesselColor} fill="none" strokeLinecap="round">
               <path d="M 263 180 Q 255 130 220 95 Q 190 70 140 65" strokeWidth={isVesselMode ? 3.5 : 2.8} />
               <path d="M 220 95 Q 185 85 140 90 Q 100 100 70 120" strokeWidth={isVesselMode ? 2.5 : 2} />
@@ -162,14 +201,14 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
             </g>
           )}
 
-          {/* Lesions */}
+          {/* Lesions (visible in lesion and combined modes) */}
           {showLesions && (
             <g id="lesion-overlay">
               {/* Microaneurysms */}
               {MICROANEURYSM_POSITIONS.map(([cx, cy], i) => (
                 <g key={`ma-${i}`}>
-                  <circle cx={cx} cy={cy} r="2.8" fill="#ef4444" opacity="0.9" />
-                  <circle cx={cx} cy={cy} r="5.5" fill="none" stroke="#f87171" strokeWidth="0.8" opacity="0.7" />
+                  <circle cx={cx} cy={cy} r="3.2" fill="#ef4444" opacity="0.9" />
+                  <circle cx={cx} cy={cy} r="6" fill="none" stroke="#f87171" strokeWidth="0.9" opacity="0.75" />
                 </g>
               ))}
 
@@ -184,23 +223,23 @@ function FundusImage({ mode, heatmapOpacity = 0.7, imageUrl, zoom = 1 }: FundusI
                   fill="#b91c1c"
                   opacity="0.85"
                   stroke="#ef4444"
-                  strokeWidth="0.5"
+                  strokeWidth="0.6"
                 />
               ))}
 
               {/* Exudates */}
               {EXUDATE_POSITIONS.map(([cx, cy, r], i) => (
                 <g key={`ex-${i}`}>
-                  <ellipse cx={cx} cy={cy} rx={r} ry={r * 0.7} fill="#fbbf24" opacity="0.85" />
+                  <ellipse cx={cx} cy={cy} rx={r} ry={r * 0.7} fill="#fbbf24" opacity="0.88" />
                   <ellipse cx={cx - 1} cy={cy - 1} rx={r * 0.5} ry={r * 0.35} fill="#fef08a" opacity="0.95" />
                 </g>
               ))}
             </g>
           )}
 
-          {/* Grad-CAM Heatmap Overlays */}
-          {showGradCam && (
-            <g id="gradcam-heatmap">
+          {/* Grad-CAM Heatmap: when no backend gradcamUrl is provided, or in combined mode overlay */}
+          {showGradCam && (!gradcamUrl || mode === 'combined') && (
+            <g id="gradcam-heatmap" style={{ mixBlendMode: 'screen' }}>
               <circle cx="165" cy="215" r="75" fill="url(#heat1)" />
               <circle cx="185" cy="200" r="55" fill="url(#heat2)" />
               <circle cx="145" cy="205" r="45" fill="url(#heat3)" />
@@ -247,6 +286,8 @@ interface FundusViewerProps {
   showControls?: boolean;
   eye?: 'OD' | 'OS' | 'Both';
   imageUrl?: string;
+  enhancedImageUrl?: string;
+  gradcamUrl?: string;
   onModeChange?: (mode: OverlayMode) => void;
 }
 
@@ -256,11 +297,17 @@ export function FundusViewer({
   showControls = true,
   eye = 'OD',
   imageUrl,
+  enhancedImageUrl,
+  gradcamUrl,
   onModeChange,
 }: FundusViewerProps) {
   const [mode, setMode] = useState<OverlayMode>(defaultMode);
   const [heatmapOpacity, setHeatmapOpacity] = useState(0.7);
   const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
 
   function handleModeSelect(newMode: OverlayMode) {
     setMode(newMode);
@@ -342,6 +389,8 @@ export function FundusViewer({
           mode={mode}
           heatmapOpacity={heatmapOpacity}
           imageUrl={imageUrl}
+          enhancedImageUrl={enhancedImageUrl}
+          gradcamUrl={gradcamUrl}
           zoom={zoom}
         />
 

@@ -195,6 +195,9 @@ export function NewScreening() {
   function simulateCapture(eye: EyeExamined) {
     setCapturedEyes(prev => ({ ...prev, [eye === 'Both' ? 'OD' : eye]: true }));
     setIsCameraActive(false);
+    if (!uploadedImageUrl) {
+      setUploadedImageUrl('/clinical-fundus-bg.jpg');
+    }
 
     // Apply quality parameters based on selected scenario
     if (selectedScenario === 'ungradable') {
@@ -343,8 +346,8 @@ export function NewScreening() {
             reason: `Referable ${result.dr_prediction.label} identified in screening camp.`,
           }
         : undefined,
-      imageUrl: (result as any).enhanced_image_url || uploadedImageUrl || undefined,
-      enhancedImageUrl: (result as any).enhanced_image_url || undefined,
+      imageUrl: uploadedImageUrl || (result as any).enhanced_image_url || '/clinical-fundus-bg.jpg',
+      enhancedImageUrl: (result as any).enhanced_image_url || uploadedImageUrl || undefined,
       gradcamUrl: (result as any).gradcam_url || undefined,
       auditTrail: [
         {
@@ -805,7 +808,11 @@ export function NewScreening() {
                 </span>
               )}
               <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                {isUsingRealModel ? '● Live Backend Inference' : 'Preset Mode'}
+                {(mlOutput as any)?.engine_type === 'fastapi_backend'
+                  ? '● Live FastAPI Backend (MobileNetV2)'
+                  : isUsingRealModel
+                  ? '● MobileNetV2 Neural Engine (Live)'
+                  : 'Preset Mode'}
               </span>
             </div>
           </div>
