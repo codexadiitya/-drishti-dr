@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
-  const { userRole, patients } = useAppState();
+  const { userRole, patients, logout } = useAppState();
   const firstPatientId = patients[0]?.id || 'PT-10021';
 
   return (
@@ -195,13 +195,14 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
 
             <NavLink
               to="/login"
+              onClick={() => logout()}
               className={({ isActive }) => `
                 flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all
                 ${isActive ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
               `}
             >
               <LogIn size={15} />
-              {!collapsed && <span>Login Portal</span>}
+              {!collapsed && <span>Switch Account / Login</span>}
             </NavLink>
 
             <NavLink

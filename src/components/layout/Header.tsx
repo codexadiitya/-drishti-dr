@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell, ChevronDown, CheckCircle2,
-  Wifi, Stethoscope, Users, Cpu, LogIn
+  Wifi, Stethoscope, Users, Cpu, LogIn, LogOut
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
 import type { UserRole } from '../../lib/types';
@@ -16,6 +16,8 @@ export function Header() {
     setIsRuralMode,
     setNetworkStatus,
     patients,
+    currentUser,
+    logout,
   } = useAppState();
 
   const [notifOpen, setNotifOpen] = useState(false);
@@ -155,41 +157,46 @@ export function Header() {
               {userRole === 'doctor' ? 'Dr' : 'HW'}
             </div>
             <div className="hidden md:block text-left">
-              <div className="text-xs font-bold text-gray-900 leading-tight">
-                {userRole === 'doctor' ? 'Dr. A. Sharma' : 'Anjali Deshmukh'}
+              <div className="text-xs font-bold text-gray-900 leading-tight truncate max-w-[140px]">
+                {currentUser?.name || (userRole === 'doctor' ? 'Dr. A. Sharma' : 'Priya Sharma')}
               </div>
-              <div className="text-[10px] text-gray-500">
-                {userRole === 'doctor' ? 'Ophthalmologist' : 'Khed PHC Worker'}
+              <div className="text-[10px] text-gray-500 truncate max-w-[140px]">
+                {currentUser?.district || (userRole === 'doctor' ? 'District Hospital' : 'PHC Operator')}
               </div>
             </div>
             <ChevronDown size={12} className="text-gray-400" />
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 top-11 w-48 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-30 animate-in fade-in zoom-in-95">
+            <div className="absolute right-0 top-11 w-52 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-30 animate-in fade-in zoom-in-95">
               <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 text-xs">
-                <div className="font-bold text-gray-900">{userRole === 'doctor' ? 'Dr. Sharma' : 'Anjali Deshmukh'}</div>
-                <div className="text-[10px] text-gray-500">{userRole === 'doctor' ? 'Clinical Reviewer' : 'PHC Field Operator'}</div>
+                <div className="font-bold text-gray-900 truncate">
+                  {currentUser?.name || (userRole === 'doctor' ? 'Dr. Sharma' : 'Priya Sharma')}
+                </div>
+                <div className="text-[10px] text-gray-500 truncate">
+                  {currentUser?.district || 'Primary Health Centre'}
+                </div>
               </div>
-              <div className="p-1 text-xs">
-                <button
-                  onClick={() => {
-                    setProfileOpen(false);
-                    navigate('/login');
-                  }}
-                  className="w-full text-left px-3 py-1.5 text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer flex items-center justify-between"
-                >
-                  <span>Sign In / Switch User</span>
-                  <LogIn size={13} className="text-gray-400" />
-                </button>
+              <div className="p-1 text-xs space-y-0.5">
                 <button
                   onClick={() => {
                     setProfileOpen(false);
                     navigate('/settings');
                   }}
-                  className="w-full text-left px-3 py-1.5 text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer flex items-center justify-between"
                 >
-                  Settings
+                  <span>Settings</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setProfileOpen(false);
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md cursor-pointer flex items-center justify-between"
+                >
+                  <span>Sign Out / Switch User</span>
+                  <LogOut size={13} className="text-red-500" />
                 </button>
               </div>
             </div>

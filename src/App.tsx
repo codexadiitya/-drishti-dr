@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppStateProvider } from './context/AppStateContext';
+import { AppStateProvider, useAppState } from './context/AppStateContext';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/Login';
 import { Overview } from './pages/Overview';
@@ -18,44 +18,61 @@ import { ScreeningQueue } from './pages/ScreeningQueue';
 import { Settings } from './pages/Settings';
 import { Architecture } from './pages/Architecture';
 
+function ProtectedAppShell() {
+  const { isAuthenticated } = useAppState();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Layout />;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Standalone Login (Initial landing experience) */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected App Shell */}
+      <Route element={<ProtectedAppShell />}>
+        {/* Health Worker routes */}
+        <Route path="/" element={<Overview />} />
+        <Route path="/screening/new" element={<NewScreening />} />
+        <Route path="/queue" element={<ScreeningQueue />} />
+
+        {/* Doctor routes */}
+        <Route path="/doctor" element={<DoctorDashboard />} />
+        <Route path="/doctor/review/:id" element={<DoctorReview />} />
+
+        {/* Patient routes */}
+        <Route path="/patients/:id" element={<PatientResults />} />
+        <Route path="/patient-portal" element={<PatientPortal />} />
+
+        {/* Clinical Evidence, Referral, Reports & Simulation */}
+        <Route path="/referral/:id" element={<Referral />} />
+        <Route path="/explainability" element={<Explainability />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/reminders" element={<Reminders />} />
+        <Route path="/simulation" element={<Simulation />} />
+        <Route path="/validation" element={<Validation />} />
+        <Route path="/architecture" element={<Architecture />} />
+        <Route path="/settings" element={<Settings />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <AppStateProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Standalone Login */}
-          <Route path="/login" element={<Login />} />
-
-          {/* App shell */}
-          <Route element={<Layout />}>
-            {/* Health Worker routes */}
-            <Route path="/" element={<Overview />} />
-            <Route path="/screening/new" element={<NewScreening />} />
-            <Route path="/queue" element={<ScreeningQueue />} />
-
-            {/* Doctor routes */}
-            <Route path="/doctor" element={<DoctorDashboard />} />
-            <Route path="/doctor/review/:id" element={<DoctorReview />} />
-
-            {/* Patient routes */}
-            <Route path="/patients/:id" element={<PatientResults />} />
-            <Route path="/patient-portal" element={<PatientPortal />} />
-
-            {/* Clinical Evidence, Referral, Reports & Simulation */}
-            <Route path="/referral/:id" element={<Referral />} />
-            <Route path="/explainability" element={<Explainability />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/reminders" element={<Reminders />} />
-            <Route path="/simulation" element={<Simulation />} />
-            <Route path="/validation" element={<Validation />} />
-            <Route path="/architecture" element={<Architecture />} />
-            <Route path="/settings" element={<Settings />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </AppStateProvider>
   );
 }
+

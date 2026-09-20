@@ -3,9 +3,19 @@ import type { Patient, Appointment, UserRole, DRLevel, ReferralPriority, AuditTr
 import { DEMO_PATIENTS, INITIAL_APPOINTMENTS } from '../lib/demoData';
 import type { DemoPresetKey } from '../services/demoApi';
 
+export interface UserSession {
+  name: string;
+  district: string;
+  role: UserRole;
+}
+
 interface AppStateContextType {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
+  isAuthenticated: boolean;
+  currentUser: UserSession;
+  login: (name: string, district: string, role: UserRole) => void;
+  logout: () => void;
   isRuralMode: boolean;
   setIsRuralMode: (val: boolean) => void;
   networkStatus: 'fast' | 'weak' | 'offline';
@@ -38,7 +48,35 @@ interface AppStateContextType {
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
-  const [userRole, setUserRole] = useState<UserRole>('health_worker');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('netrarakshaq_auth') === 'true';
+  });
+
+  const [currentUser, setCurrentUser] = useState<UserSession>(() => {
+    const saved = sessionStorage.getItem('netrarakshaq_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return {
+      name: 'Priya Sharma / प्रिया शर्मा',
+      district: 'Pune District / पुणे',
+      role: 'health_worker',
+    };
+  });
+
+  const [userRole, setUserRole] = useState<UserRole>(() => {
+    const saved = sessionStorage.getItem('netrarakshaq_user');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.role) return parsed.role;
+      } catch {}
+    }
+    return 'health_worker';
+  });
+
   const [isRuralMode, setIsRuralMode] = useState<boolean>(false);
   const [networkStatus, setNetworkStatus] = useState<'fast' | 'weak' | 'offline'>('fast');
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
@@ -47,6 +85,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [activePatientId, setActivePatientId] = useState<string>(DEMO_PATIENTS[0].id);
   const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
   const [currentDemoPreset, setCurrentDemoPreset] = useState<DemoPresetKey>('moderate_npdr');
+
+  function login(name: string, district: string, role: UserRole) {
+    setIsAuthenticated(true);
+    setUserRole(role);
+    const session: UserSession = { name, district, role };
+    setCurrentUser(session);
+    sessionStorage.setItem('netrarakshaq_auth', 'true');
+    sessionStorage.setItem('netrarakshaq_user', JSON.stringify(session));
+  }
+
+  function logout() {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('netrarakshaq_auth');
+    sessionStorage.removeItem('netrarakshaq_user');
+  }
 
   // Sync rural mode with network status
   useEffect(() => {
@@ -168,6 +221,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       value={{
         userRole,
         setUserRole,
+        isAuthenticated,
+        currentUser,
+        login,
+        logout,
         isRuralMode,
         setIsRuralMode,
         networkStatus,

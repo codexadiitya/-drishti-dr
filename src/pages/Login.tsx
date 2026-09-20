@@ -276,7 +276,7 @@ const DISTRICTS = [
 
 export function Login() {
   const navigate = useNavigate();
-  const { setUserRole } = useAppState();
+  const { login } = useAppState();
 
   const [selectedLang, setSelectedLang] = useState<LanguageOption>(LANGUAGES[0]);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
@@ -290,14 +290,14 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
 
+    const targetRole = chosenRole === 'admin' ? 'doctor' : chosenRole;
+    login(name, district, targetRole);
+
     if (chosenRole === 'doctor') {
-      setUserRole('doctor');
       setTimeout(() => navigate('/doctor'), 350);
     } else if (chosenRole === 'admin') {
-      setUserRole('doctor');
       setTimeout(() => navigate('/settings'), 350);
     } else {
-      setUserRole('health_worker');
       setTimeout(() => navigate('/'), 350);
     }
   }
