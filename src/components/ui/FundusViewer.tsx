@@ -139,27 +139,44 @@ function FundusImage({
 
         {/* Retinal Fundus Base */}
         <g clipPath="url(#fundus-clip)">
-          {activeSrc ? (
+          {/* Base layer: always show original/enhanced image */}
+          {(imageUrl || enhancedImageUrl) ? (
+            <image
+              href={imageUrl || enhancedImageUrl}
+              xlinkHref={imageUrl || enhancedImageUrl}
+              x="0" y="0" width="400" height="400"
+              preserveAspectRatio="xMidYMid slice"
+              opacity={1}
+              style={imageFilter && mode !== 'gradcam' ? { filter: imageFilter } : undefined}
+            />
+          ) : activeSrc ? (
             <image
               href={activeSrc}
               xlinkHref={activeSrc}
-              x="0"
-              y="0"
-              width="400"
-              height="400"
+              x="0" y="0" width="400" height="400"
               preserveAspectRatio="xMidYMid slice"
               opacity={bgOpacity}
               style={imageFilter ? { filter: imageFilter } : undefined}
             />
           ) : (
-            <circle
-              cx="200"
-              cy="200"
-              r="196"
+            <circle cx="200" cy="200" r="196"
               fill={isVesselMode ? 'url(#vessel-bg)' : 'url(#fundus-bg)'}
               opacity={bgOpacity}
             />
           )}
+
+          {/* Grad-CAM overlay: real heatmap image on top with adjustable opacity */}
+          {showGradCam && gradcamUrl && (
+            <image
+              href={gradcamUrl}
+              xlinkHref={gradcamUrl}
+              x="0" y="0" width="400" height="400"
+              preserveAspectRatio="xMidYMid slice"
+              opacity={heatmapOpacity}
+              style={{ mixBlendMode: 'multiply' }}
+            />
+          )}
+
 
           {/* Choroidal texture (fallback synthetic mode only) */}
           {!hasRealImage && showOriginal && !isVesselMode && (
