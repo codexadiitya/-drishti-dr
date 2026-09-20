@@ -217,11 +217,11 @@ export function NewScreening() {
     const statuses: ('pending' | 'processing' | 'complete')[] = PIPELINE_STEPS.map(() => 'pending');
     setStepStatuses([...statuses]);
 
-    // Animate through pipeline steps
+    // Animate through pipeline steps quickly (150ms per step)
     for (let i = 0; i < PIPELINE_STEPS.length; i++) {
       statuses[i] = 'processing';
       setStepStatuses([...statuses]);
-      await new Promise(r => setTimeout(r, 450));
+      await new Promise(r => setTimeout(r, 150));
       statuses[i] = 'complete';
       setStepStatuses([...statuses]);
     }
@@ -367,6 +367,7 @@ export function NewScreening() {
     };
 
     addPatientScreening(newPatient);
+    setCurrentStep('complete');
   }
 
   return (
